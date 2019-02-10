@@ -1,3 +1,4 @@
+#include "evaluate_exceptions.hh"
 #include "utils.hh"
 
 #include <gtest/gtest.h>
@@ -7,7 +8,14 @@ namespace Tests {
 
 std::vector<Expression> expressions;
 
-TEST(a, b) { EXPECT_EQ(2 + 2, 4); }
+TEST(EvaluatorTest, Exceptions) {
+
+  for (const Expression &expression : expressions) {
+    int value = evaluateExceptions(expression.expression);
+
+    EXPECT_EQ(expression.result, value);
+  }
+}
 
 } // namespace Tests
 } // namespace ExpressionParser
