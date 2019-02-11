@@ -6,9 +6,14 @@
 namespace ExpressionParser {
 namespace Tests {
 
-std::vector<Expression> expressions;
+static std::vector<Expression> expressions;
 
-TEST(EvaluatorTest, Exceptions) {
+TEST(ExceptionsEvaluatorTest, EmptyIsError) {
+
+  EXPECT_ANY_THROW(evaluateExceptions({}));
+}
+
+TEST(ExceptionsEvaluatorTest, ValidCases) {
 
   for (const Expression &expression : expressions) {
     int value = evaluateExceptions(expression.expression);
