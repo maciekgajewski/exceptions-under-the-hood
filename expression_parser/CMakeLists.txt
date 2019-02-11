@@ -3,6 +3,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(expression_parser
   utils.cc utils.hh
+  evaluate_no_exceptions.cc evaluate_no_exceptions.hh
   evaluate_exceptions.cc evaluate_exceptions.hh)
 
 add_executable(expression_parser_test test.cc)

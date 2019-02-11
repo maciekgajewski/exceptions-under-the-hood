@@ -80,7 +80,7 @@ template <typename It> int evaluateExceptions(It first, const It last) {
 }
 
 // evaluates expression, throws on error
-int evaluateExceptions(const std::string &expression) {
+inline int evaluateExceptions(const std::string &expression) {
   return evaluateExceptions(expression.begin(), expression.end());
 }
 

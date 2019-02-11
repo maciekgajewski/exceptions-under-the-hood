@@ -1,4 +1,5 @@
 #include "evaluate_exceptions.hh"
+#include "evaluate_no_exceptions.hh"
 #include "utils.hh"
 
 #include <gtest/gtest.h>
@@ -18,6 +19,21 @@ TEST(ExceptionsEvaluatorTest, ValidCases) {
   for (const Expression &expression : expressions) {
     int value = evaluateExceptions(expression.expression);
 
+    EXPECT_EQ(expression.result, value);
+  }
+}
+
+TEST(NoExceptionsEvaluatorTest, EmptyIsError) {
+
+  int result;
+  EXPECT_FALSE(evaluateNoExceptions({}, result));
+}
+
+TEST(NoExceptionsEvaluatorTest, ValidCases) {
+
+  for (const Expression &expression : expressions) {
+    int value;
+    EXPECT_TRUE(evaluateNoExceptions(expression.expression, value));
     EXPECT_EQ(expression.result, value);
   }
 }
