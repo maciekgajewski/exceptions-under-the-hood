@@ -10,3 +10,6 @@ add_executable(expression_parser_test test.cc)
 target_link_libraries(expression_parser_test gtest)
 target_link_libraries(expression_parser_test expression_parser)
 
+add_executable(expression_parser_benchmark benchmark.cc)
+target_link_libraries(expression_parser_benchmark expression_parser)
+target_link_libraries(expression_parser_benchmark benchmark)
