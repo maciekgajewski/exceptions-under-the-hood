@@ -25,7 +25,7 @@ template <typename It> int evaluate(It &current, const It last) {
     }
 
     // maybe parse operator
-    if (current == last or *current == ')')
+    if (current == last || *current == ')')
       break;
 
     if (*current == '+')
@@ -45,7 +45,7 @@ template <typename It> int evaluateParenthesis(It &current, const It last) {
   assert(*current == '(');
   ++current;
   int value = evaluate(current, last);
-  if (current == last or *current != ')')
+  if (current == last || *current != ')')
     throw std::runtime_error("Missing closing parenthesis");
   ++current;
   return value;
@@ -53,7 +53,7 @@ template <typename It> int evaluateParenthesis(It &current, const It last) {
 
 template <typename It> int evaluateNumber(It &current, const It last) {
 
-  assert(*current >= '0' and *current <= '9');
+  assert(*current >= '0' && *current <= '9');
 
   int result = 0;
   while (true) {
@@ -61,7 +61,7 @@ template <typename It> int evaluateNumber(It &current, const It last) {
     ++current;
     if (current == last)
       return result;
-    if (*current < '0' or *current > '9')
+    if (*current < '0' || *current > '9')
       return result;
     result *= 10;
   }

@@ -32,7 +32,7 @@ template <typename It> bool evaluate(It &current, const It last, int &result) {
     }
 
     // maybe parse operator
-    if (current == last or *current == ')')
+    if (current == last || *current == ')')
       break;
 
     if (*current == '+')
@@ -57,7 +57,7 @@ bool evaluateParenthesis(It &current, const It last, int &result) {
   ++current;
   if (!evaluate(current, last, result))
     return false;
-  if (current == last or *current != ')') {
+  if (current == last || *current != ')') {
     _error = "Missing closing parenthesis";
     return false;
   }
@@ -67,7 +67,7 @@ bool evaluateParenthesis(It &current, const It last, int &result) {
 
 template <typename It> int evaluateNumber(It &current, const It last) {
 
-  assert(*current >= '0' and *current <= '9');
+  assert(*current >= '0' && *current <= '9');
 
   int result = 0;
   while (true) {
@@ -75,7 +75,7 @@ template <typename It> int evaluateNumber(It &current, const It last) {
     ++current;
     if (current == last)
       return result;
-    if (*current < '0' or *current > '9')
+    if (*current < '0' || *current > '9')
       return result;
     result *= 10;
   }
