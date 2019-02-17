@@ -1,0 +1,4 @@
+project(expressions_under_the_hood)
+
+add_subdirectory(expression_parser)
+add_subdirectory(external)
