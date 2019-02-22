@@ -11,5 +11,7 @@ target_link_libraries(expression_parser_test gtest)
 target_link_libraries(expression_parser_test expression_parser)
 
 add_executable(expression_parser_benchmark benchmark.cc)
+target_include_directories(expression_parser_benchmark PRIVATE SYSTEM ../external/papipp)
 target_link_libraries(expression_parser_benchmark expression_parser)
 target_link_libraries(expression_parser_benchmark benchmark)
+target_link_libraries(expression_parser_benchmark papi)
