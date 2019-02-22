@@ -52,8 +52,8 @@ static void NoExceptions(benchmark::State &state,
 
 #ifdef EPB_PAPI
   events.stop_counters();
-  printCounters(events, state.iterations());
-  std::cout << "iterations: " << state.iterations() << std::endl;
+  //printCounters(events, state.iterations());
+  //std::cout << "iterations: " << state.iterations() << std::endl;
 #endif
 }
 
@@ -83,8 +83,8 @@ static void Exceptions(benchmark::State &state,
 
 #ifdef EPB_PAPI
   events.stop_counters();
-  printCounters(events, state.iterations());
-  std::cout << "iterations: " << state.iterations() << std::endl;
+  //printCounters(events, state.iterations());
+  //std::cout << "iterations: " << state.iterations() << std::endl;
 #endif
 }
 
