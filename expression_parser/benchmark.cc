@@ -59,7 +59,7 @@ static void NullWholeSet(benchmark::State &state,
 
 #ifdef EPB_PAPI
   events.stop_counters();
-  if (state.iterations() > 1000000)
+  if (state.iterations() > 10000000)
     printCounters(events, state.iterations());
 #endif
 }

@@ -5,7 +5,7 @@
 import random
 
 NUM = 100
-MAX_DEPTH = 10
+MAX_DEPTH = 60
 
 
 def rand_parent() -> bool:
@@ -13,7 +13,7 @@ def rand_parent() -> bool:
 
 
 def rand_just_number() -> bool:
-    return random.randint(0, 10) < 7
+    return random.randint(0, 10) < 5
 
 
 def expr_no_parent(depth: int):
