@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#define EPB_PAPI
+//#define EPB_PAPI
 
 namespace ExpressionParser
 {
@@ -30,8 +30,74 @@ static void printCounters(const papi_event_set &events, std::uint64_t iterations
             << std::endl;
 }
 
-static void NoExceptions(benchmark::State &state,
-                         const std::vector<Expression> &expressions)
+std::size_t global;
+static void warmup(const std::vector<Expression> &expressions)
+{
+  for (const Expression &e : expressions)
+    for (char c : e.expression)
+      global += c;
+}
+
+static void NoExceptionsWholeSet(benchmark::State &state,
+                                 const std::vector<Expression> &expressions)
+{
+// papi - perf counters
+#ifdef EPB_PAPI
+  papi_event_set events;
+  events.start_counters();
+#endif
+
+  for (auto _ : state)
+  {
+    for (const Expression &e : expressions)
+    {
+      int result;
+      ::benchmark::DoNotOptimize(
+          evaluateNoExceptions(e.expression, result));
+    }
+  }
+
+#ifdef EPB_PAPI
+  events.stop_counters();
+  //printCounters(events, state.iterations());
+  //std::cout << "iterations: " << state.iterations() << std::endl;
+#endif
+}
+
+static void ExceptionsWholeSet(benchmark::State &state,
+                               const std::vector<Expression> &expressions)
+{
+// papi - perf counters
+#ifdef EPB_PAPI
+  papi_event_set events;
+  events.start_counters();
+#endif
+
+  for (auto _ : state)
+  {
+    for (const Expression &e : expressions)
+    {
+      try
+      {
+        ::benchmark::DoNotOptimize(
+            evaluateExceptions(e.expression));
+      }
+      catch (...)
+      {
+      }
+    }
+  }
+
+#ifdef EPB_PAPI
+  events.stop_counters();
+  //printCounters(events, state.iterations());
+  //std::cout << "iterations: " << state.iterations() << std::endl;
+#endif
+}
+
+static void
+NoExceptions(benchmark::State &state,
+             const std::vector<Expression> &expressions)
 {
 // papi - perf counters
 #ifdef EPB_PAPI
@@ -87,6 +153,12 @@ static void Exceptions(benchmark::State &state,
   //std::cout << "iterations: " << state.iterations() << std::endl;
 #endif
 }
+
+BENCHMARK_CAPTURE(NoExceptionsWholeSet, valid, expressions_valid);
+BENCHMARK_CAPTURE(ExceptionsWholeSet, valid, expressions_valid);
+
+BENCHMARK_CAPTURE(NoExceptionsWholeSet, invalid1, expressions_invalid_1);
+BENCHMARK_CAPTURE(ExceptionsWholeSet, invalid1, expressions_invalid_1);
 
 BENCHMARK_CAPTURE(NoExceptions, valid, expressions_valid);
 BENCHMARK_CAPTURE(Exceptions, valid, expressions_valid);

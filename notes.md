@@ -12,6 +12,7 @@
 - http://www.ucw.cz/~hubicka/papers/amd64/node2.html - on exception in gcc
 - http://infocenter.arm.com/help/topic/com.arm.doc.ihi0038b/IHI0038B_ehabi.pdf
 - https://mortoray.com/2013/09/12/the-true-cost-of-zero-cost-exceptions/ - kolejny fajny blogpost
+- http://nibblestew.blogspot.com/2017/01/measuring-execution-performance-of-c.html - blog comparing C vs Exceptions
 
 # TODO
 
