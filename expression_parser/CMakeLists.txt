@@ -14,4 +14,12 @@ add_executable(expression_parser_benchmark benchmark.cc)
 target_include_directories(expression_parser_benchmark PRIVATE SYSTEM ../external/papipp)
 target_link_libraries(expression_parser_benchmark expression_parser)
 target_link_libraries(expression_parser_benchmark benchmark)
-target_link_libraries(expression_parser_benchmark papi)
+
+add_executable(expression_parser_benchmark_papi benchmark.cc)
+target_compile_definitions(expression_parser_benchmark_papi PRIVATE EPB_PAPI)
+target_include_directories(expression_parser_benchmark_papi PRIVATE SYSTEM ../external/papipp)
+target_link_libraries(expression_parser_benchmark_papi expression_parser)
+target_link_libraries(expression_parser_benchmark_papi benchmark)
+target_link_libraries(expression_parser_benchmark_papi papi)
+
+file(COPY expressions.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
