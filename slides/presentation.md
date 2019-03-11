@@ -11,12 +11,61 @@ Maciej Gajewski
 
 * Maciek Gajewski [maciej.gajewski0@gmail.com](mailto:maciej.gajewski0@gmail.com)
 * 30 years of programming, 20 years of C++
-* Role at Optiver: C++ Developer and teacher
+* Previously: Embedded, backend, HFT
+* Now: Freelance, Crypto-currnecy trading
+
 
 
 .center[
-<img src="pics/Maciek.jpg" height="200"/>
+<img src="pics/Maciek.jpg" height="300"/>
 ]
+
+---
+
+## The origin of exception (1)
+
+TODO: return code
+
+read
+
+---
+
+## The oring of exceptions (2)
+
+TODO: if ladder
+
+read all file
+
+---
+
+## The oring of exceptions (3)
+
+TODO: the problem of resources
+
+---
+
+## Releading resources (1)
+
+TODO: just die
+
+---
+
+## Releading resources (2)
+
+TODO: goto ladder
+
+---
+
+## Non-local error handling
+
+TODO: longjmp
+
+---
+
+## Non-local error handling (2)
+
+TODO: structured exceptions
+
 
 ---
 # The Last Slide
