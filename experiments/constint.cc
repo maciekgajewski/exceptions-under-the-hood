@@ -2,6 +2,8 @@
 
 void fun() { throw(const int) 7; }
 
+// This does not compile on windows
+
 void catch_int_only() {
   try {
     std::cout << "will catch 'int' and '...'" << std::endl;
