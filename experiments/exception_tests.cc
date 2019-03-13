@@ -18,6 +18,10 @@ void catch_by_ref() {
     throw_exception("catch by ref");
   } catch (Exception &e) {
     std::cout << "Exception caught, &e=" << &e << std::endl;
+    int var = 5;
+    e.report(&var);
+  } catch (...) {
+    std::cout << "... caught" << std::endl;
   }
 }
 
@@ -27,6 +31,23 @@ void catch_by_const_ref() {
     throw_exception("catch by const ref");
   } catch (const Exception &e) {
     std::cout << "Exception caught, &e=" << &e << std::endl;
+    int var = 5;
+    e.report(&var);
+  } catch (...) {
+    std::cout << "... caught" << std::endl;
+  }
+}
+
+void catch_derived_by_const_ref() {
+  try {
+    std::cout << " # Will catch derived by const reference" << std::endl;
+    throw_derived_exception("derived by const ref");
+  } catch (const Exception &e) {
+    std::cout << "Exception caught, &e=" << &e << std::endl;
+    int var = 6;
+    e.report(&var);
+  } catch (...) {
+    std::cout << "... caught" << std::endl;
   }
 }
 
@@ -39,4 +60,5 @@ int main() {
   catch_by_value();
   catch_by_ref();
   catch_by_const_ref();
+  catch_derived_by_const_ref();
 }

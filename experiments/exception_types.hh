@@ -2,13 +2,16 @@
 
 class Exception {
 public:
-  Exception(const char* msg);
-  Exception(const Exception&);
-  ~Exception();
+  Exception(const char *msg);
+  Exception(const Exception &);
 
-private:
+  virtual void report(int *ptr) const;
 
-  const char* msg_;
+  virtual ~Exception();
+
+protected:
+  const char *msg_;
 };
 
-void throw_exception(const char* msg);
+void throw_exception(const char *msg);
+void throw_derived_exception(const char *msg);
