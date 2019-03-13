@@ -43,6 +43,43 @@ public:
   }
 };
 
+// non-virtual exception base
+ExceptionNonVirtual::ExceptionNonVirtual(const char *msg) : msg_(msg) {
+
+  std::cout << "ExceptionNonVirtual(" << msg_ << ") created, this=" << this
+            << std::endl;
+}
+
+ExceptionNonVirtual::ExceptionNonVirtual(const ExceptionNonVirtual &o)
+    : msg_(o.msg_) {
+  std::cout << "ExceptionNonVirtual(" << msg_ << ") copied, this=" << this
+            << ", copied from=" << &o << std::endl;
+}
+
+ExceptionNonVirtual::~ExceptionNonVirtual() {
+  std::cout << "ExceptionNonVirtual(" << msg_ << ") destroyed, this=" << this
+            << std::endl;
+}
+
+// derived from non-virtual base
+class DerivedNonVirtualException : public ExceptionNonVirtual {
+public:
+  DerivedNonVirtualException(const char *msg) : ExceptionNonVirtual(msg) {
+    std::cout << "DerivedNonVirtualException(" << msg_
+              << ") created, this=" << this << std::endl;
+  }
+  DerivedNonVirtualException(const DerivedNonVirtualException &o)
+      : ExceptionNonVirtual(o) {
+    std::cout << "DerivedNonVirtualException(" << msg_
+              << ") copied, this=" << this << ", copied from=" << &o
+              << std::endl;
+  }
+  ~DerivedNonVirtualException() {
+    std::cout << "DerivedNonVirtualException(" << msg_
+              << ") destroyed, this=" << this << std::endl;
+  }
+};
+
 void throw_exception(const char *msg) {
 
   const std::type_info &ti = typeid(Exception);
@@ -57,4 +94,12 @@ void throw_derived_exception(const char *msg) {
   std::cout << "Throwing DerivedException. Stack now is: " << &msg
             << ", type_info at " << &ti << std::endl;
   throw DerivedException(msg);
+}
+
+void throw_derived_non_virtual_exception(const char *msg) {
+
+  const std::type_info &ti = typeid(DerivedNonVirtualException);
+  std::cout << "Throwing DerivedNonVirtualException. Stack now is: " << &msg
+            << ", type_info at " << &ti << std::endl;
+  throw DerivedNonVirtualException(msg);
 }

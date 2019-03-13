@@ -51,14 +51,30 @@ void catch_derived_by_const_ref() {
   }
 }
 
+void catch_derived_non_virtual_by_const_ref() {
+  try {
+    std::cout << " # Will catch non-virtual derived by const reference"
+              << std::endl;
+    throw_derived_non_virtual_exception("non virtual derived");
+  } catch (const ExceptionNonVirtual &e) {
+    std::cout << "ExceptionNonVirtual caught, &e=" << &e << std::endl;
+  } catch (...) {
+    std::cout << "... caught" << std::endl;
+  }
+}
+
 int main() {
 
-  const std::type_info &ti = typeid(Exception);
+  std::cout << "Starting tests" << std::endl;
 
-  std::cout << "Startign tests, type info at " << &ti << std::endl;
+  const std::type_info &ti = typeid(Exception);
+  std::cout << " - type info of Exception at " << &ti << std::endl;
+  const std::type_info &tinv = typeid(ExceptionNonVirtual);
+  std::cout << " - type info of ExceptionNonVirtual at " << &tinv << std::endl;
 
   catch_by_value();
   catch_by_ref();
   catch_by_const_ref();
   catch_derived_by_const_ref();
+  catch_derived_non_virtual_by_const_ref();
 }
