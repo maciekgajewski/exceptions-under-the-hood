@@ -13,6 +13,9 @@
 - http://infocenter.arm.com/help/topic/com.arm.doc.ihi0038b/IHI0038B_ehabi.pdf
 - https://mortoray.com/2013/09/12/the-true-cost-of-zero-cost-exceptions/ - kolejny fajny blogpost
 - http://nibblestew.blogspot.com/2017/01/measuring-execution-performance-of-c.html - blog comparing C vs Exceptions
+- http://www.stroustrup.com/except89.pdf - design rationale and history
+- https://apps.dtic.mil/dtic/tr/fulltext/u2/a062363.pdf - The Revised Report on Scheme: A Dialect of LISP, Guy Lewis Steeel Jr., Gerald Jay Sussman, Jan 1978
+- http://www.softwarepreservation.org/projects/LISP/MIT/Moon-MACLISP_Reference_Manual-Apr_08_1974.pdf
 
 # TODO
 

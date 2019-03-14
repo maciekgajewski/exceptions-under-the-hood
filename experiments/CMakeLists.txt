@@ -12,3 +12,6 @@ add_library(exception_types SHARED
 
 add_executable(exception_test_dl exception_tests.cc)
 target_link_libraries(exception_test_dl exception_types)
+
+
+add_executable(terminate_handler terminate_handler.cc)
