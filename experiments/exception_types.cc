@@ -99,7 +99,8 @@ void throw_derived_exception(const char *msg) {
 void throw_derived_non_virtual_exception(const char *msg) {
 
   const std::type_info &ti = typeid(DerivedNonVirtualException);
+  const std::type_info &bti = typeid(ExceptionNonVirtual);
   std::cout << "Throwing DerivedNonVirtualException. Stack now is: " << &msg
-            << ", type_info at " << &ti << std::endl;
+            << ", type_info at " << &ti << ", base class type info: at" << &bti << std::endl;
   throw DerivedNonVirtualException(msg);
 }
