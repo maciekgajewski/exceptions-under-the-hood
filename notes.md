@@ -16,6 +16,7 @@
 - http://www.stroustrup.com/except89.pdf - design rationale and history
 - https://apps.dtic.mil/dtic/tr/fulltext/u2/a062363.pdf - The Revised Report on Scheme: A Dialect of LISP, Guy Lewis Steeel Jr., Gerald Jay Sussman, Jan 1978
 - http://www.softwarepreservation.org/projects/LISP/MIT/Moon-MACLISP_Reference_Manual-Apr_08_1974.pdf
+- https://www.youtube.com/watch?v=XpRL7exdFL8&feature=youtu.be - interesting video with unwindong details
 
 # TODO
 
