@@ -1,9 +1,10 @@
 class: center, middle
 
 # Exceptions
+
 ## Under the Hood
 
-Maciej Gajewski
+Maciek Gajewski
 
 ---
 
@@ -24,15 +25,24 @@ Maciek Gajewski
 * 30 years of programming, 20 years of C++
 * Previously: Embedded, backend, (Wrocław) 
 * Previously: HFT, Teaching (London, Amsterdam)
-* Now: Freelance, Crypto-currnecy trading
+* Now: Freelance, Crypto-currency trading
 * Active member of C++ community, previously in A'dam, now in W-w
 
 ---
 class: center, middle
 
+<!-- ================= Chapter I - C ==================== -->
+
+# Chapter I
+
 ## Error handling in C
 
+???
+
+It all started with C, after all
+
 ---
+
 # Return value
 
 ```c
@@ -195,14 +205,14 @@ char* readall(const char* pathname) {
 
 * Note how complex the code have become
 * The releasing of resources was not needed previously
-* Not all reseoruices may be freed on process exit
+* Not all resoruces may be freed on process exit
 * Processes were designed as 'microservices'
 * How history repeats itself
 
 
 ---
 
-## Releading resources (2)
+## Releasing resources (2)
 
 .pull-left[
 ```c
@@ -253,14 +263,146 @@ open_failed:
 
 ## Non-local error handling
 
-TODO: longjmp
+### longjmp
+
+.pull-left[
+```c
+jmp_buf buffer; // global variable
+
+void fun_a() {
+
+  int error_code = setjmp(buffer);
+  if (r == 0) {
+    // normal path
+    // always taken!
+    void fun_b();
+  } else {
+    // this is error handling code
+    on_error(r);
+  }
+}
+```
+]
+.pull-right[
+```c
+void fun_c() {
+  if (do_something()) {
+    // oops, error!
+    longjmp(buffer);
+    // the end
+  }
+  // other code
+  // ...
+}
+```
+]
+
+???
+
+* jmp_buf contains machine state, 150-260 bytes, depending on architecture
+* setjmp/longjump allows for interrupting the code
+* Similar to exceptions...
+* One needs to adopt a convention for the entire project
+* But doesn't handle resources!
 
 ---
 
 ## Non-local error handling (2)
 
-TODO: structured exceptions
+### Hardware exceptions
 
+* Can be caused by user code, or by CPU
+* Normally, handled by the OS
+* User-defined function is executed
+
+???
+
+* The goal of harsware exceptions is to notify user code if something bad happens
+* User code can alos raise an exceptions
+* Exception can be asynchronous
+* Execution can resume
+
+---
+
+## Chapter summary
+
+* Sometimes you just want the program to die on error
+* ... but sometimes not.
+* Sometimes you want to check the error locally
+* ... but sometimes you want cental handling
+* ... and then you wanrt the program to remain consistent.
+* It's good to know what went wrong, if only to print an error message
+
+???
+
+I think by now the design principles behind C++ exceptions are clear.
+
+<!-- ===================== Chapter II - C++ exceptions =============== -->
+
+---
+class: center, middle
+
+# Chapter II
+
+## C++ exceptions
+
+???
+
+Introduced in 1990
+
+---
+background-image: url(pics/maclisp-exceptions.jpg)
+
+???
+
+* Page from MacLisp manual, 1974
+* Exceptions we used in earlier versions of Lips, but different keyword were used
+
+---
+
+## The basics
+
+.pull-left[
+
+  ```c++
+  int error_handler(int p) {
+    try {
+      auto x = foo(p);
+      return fun(x);
+    } catch(const std::exception& e) {
+      log_err(e.what());
+    }
+  }
+```
+
+]
+.pull-right[
+
+``` c++
+int bar(int p) {
+  if (p == 666)
+    throw std::logic_error("Evil!");
+  return p+7;
+}
+```
+
+```c++
+int bystander(int p) {
+  Widget w;
+  return w.baz(bar(p) + foo(p));
+}
+```
+
+]
+
+???
+There are 3 main scenarios:
+
+* Throwing exception
+* Handling exception
+* "Innocent bystander"
+
+<!-- ========================== the End ============================ -->
 
 ---
 # The Last Slide
@@ -269,4 +411,3 @@ TODO: structured exceptions
 * This presentation: https://maciekgajewski.github.io/exceptions-under-the-hood/
 * Compiler Explorer: https://gcc.godbolt.org
 * CppCon 2017, _“What Has My Compiler Done for Me Lately?”_, Matt Godbolt
-* CppCon 2017, _"When a Microsecond Is an Eternity"_, Carl Cook
