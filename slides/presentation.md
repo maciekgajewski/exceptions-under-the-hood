@@ -9,24 +9,46 @@ Maciej Gajewski
 
 # About me
 
-* Maciek Gajewski [maciej.gajewski0@gmail.com](mailto:maciej.gajewski0@gmail.com)
-* 30 years of programming, 20 years of C++
-* Previously: Embedded, backend, HFT
-* Now: Freelance, Crypto-currnecy trading
-
-
-
 .center[
 <img src="pics/Maciek.jpg" height="300"/>
+
+Maciek Gajewski
+
+[maciej.gajewski0@gmail.com](mailto:maciej.gajewski0@gmail.com)
+
 ]
 
+
+???
+
+* 30 years of programming, 20 years of C++
+* Previously: Embedded, backend, (Wrocław) 
+* Previously: HFT, Teaching (London, Amsterdam)
+* Now: Freelance, Crypto-currnecy trading
+* Active member of C++ community, previously in A'dam, now in W-w
+
 ---
+class: center, middle
 
-## The origin of exception (1)
+## Error handling in C
 
-TODO: return code
+---
+# Return value
 
-read
+```cpp
+int open(const char *pathname, int flags);
+```
+
+```
+RETURN VALUE
+  open() return the new file descriptor, or -1 if an error occurred
+  (in which case, errno is set appropriately).
+```
+
+???
+
+* The classical way of signaling error is trough a return value
+* 'errno' is needed to pass error details
 
 ---
 
