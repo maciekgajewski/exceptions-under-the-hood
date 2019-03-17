@@ -35,46 +35,219 @@ class: center, middle
 ---
 # Return value
 
-```cpp
+```c
 int open(const char *pathname, int flags);
 ```
 
 ```
 RETURN VALUE
   open() return the new file descriptor, or -1 if an error occurred
-  (in which case, errno is set appropriately).
+  (in which case, errnois set appropriately).
 ```
 
 ???
 
 * The classical way of signaling error is trough a return value
 * 'errno' is needed to pass error details
+* errno used to be a variable, but turned out the API is insufficient
+
+--
+
+### Errno is not a variable!
+
+```c
+extern int *__errno_location (void) __THROW __attribute_const__;
+# define errno (*__errno_location ())
+```
+
+???
+This one is from GNU libc
+
+--
+
+```c
+extern int *__geterrno(void);
+#define errno (*__geterrno())
+```
+???
+This one is from Android
+---
+
+## Return value (2)
+
+```c
+int fd, pos;
+char* data;
+struct stat sb;
+
+fd = open(path, O_RDONLY);
+fstat(fd, &sb);
+data = (char *)malloc(sb.st_size);
+pos = 0;
+while (pos < sb.st_size) {
+    pos += read(fd, data + pos, sb.st_size - pos);
+}
+```
+
+???
+* Simple C code reading file content into a buffer
+* Easy to read, but no error handling
 
 ---
 
-## The oring of exceptions (2)
+## Return value (2)
 
-TODO: if ladder
+```c
+int fd, r, pos;
+char* data;
+struct stat sb;
 
-read all file
+fd = open(path, O_RDONLY);
+if (fd < 0) {
+  perror("Error opening file"); exit(1);
+}
+fstat(fd, &sb);
+data = (char *)malloc(sb.st_size);
+if (data == 0) {
+  perror("Error allocating buffer"); exit(2);
+}
+pos = 0;
+while (pos < sb.st_size) {
+    r = read(fd, data + pos, sb.st_size - pos);
+    if (r < 0) {
+      perror("Error reading data"); exit(3);
+    }
+    pos += r;
+}
+```
+???
+
+* Basic error handling interrupts the program
+* Code is getting more difficult to read
+* What if we want to turn it into a library?
 
 ---
+## Return value (2)
 
-## The oring of exceptions (3)
+```c
+char* readall(const char* pathname) {
+  int fd, r, pos;
+  char* data;
+  struct stat sb;
 
-TODO: the problem of resources
+  fd = open(path, O_RDONLY);
+  if (fd < 0)
+    return NULL;
+  fstat(fd, &sb);
+  data = (char *)malloc(sb.st_size);
+  if (data == 0)
+    return NULL;
+  pos = 0;
+  while (pos < sb.st_size) {
+      r = read(fd, data + pos, sb.st_size - pos);
+      if (r < 0)
+        return NULL;
+      pos += r;
+  }
+  return data;
+}
+```
+
+???
+
+* The goal: propagate error to the caller
+* Let caller decide if the error should be habdled gracioulsy
+* Is it a correct code?
 
 ---
+## Releasing resources
 
-## Releading resources (1)
+```c
+char* readall(const char* pathname) {
+  int fd, r, pos;
+  char* data;
+  struct stat sb;
 
-TODO: just die
+  fd = open(path, O_RDONLY);
+  if (fd < 0)
+    return NULL;
+  fstat(fd, &sb);
+  data = (char *)malloc(sb.st_size);
+  if (data == 0) {
+    close(fd);
+    return NULL;
+  }
+  pos = 0;
+  while (pos < sb.st_size) {
+      r = read(fd, data + pos, sb.st_size - pos);
+      if (r < 0) {
+        free(data);
+        close(fd);
+        return NULL;
+      }
+      pos += r;
+  }
+  return data;
+}
+```
+
+???
+
+* Note how complex the code have become
+* The releasing of resources was not needed previously
+* Not all reseoruices may be freed on process exit
+* Processes were designed as 'microservices'
+* How history repeats itself
+
 
 ---
 
 ## Releading resources (2)
 
-TODO: goto ladder
+.pull-left[
+```c
+char* readall(const char* pathname) {
+  int fd, r, pos;
+  char* data;
+  struct stat sb;
+
+  fd = open(path, O_RDONLY);
+  if (fd < 0)
+    goto open_failed:;
+  fstat(fd, &sb);
+  data = (char *)malloc(sb.st_size);
+  if (data == 0)
+    goto malloc_failed;
+  pos = 0;
+  while (pos < sb.st_size) {
+      r = read(fd, data + pos,
+            sb.st_size - pos);
+      if (r < 0)
+        goto read_failed;
+      pos += r;
+  }
+  // to be continued...
+```
+]
+
+.pull-right[
+```c
+ // ...continued
+read_failed:
+  free(data);
+malloc_failed:
+  close(fd);
+open_failed:
+  return NULL;
+}
+```
+]
+
+???
+
+* This pattern is commonly found in C code
+* Remember this pattern!
+* Advantage: the error handling code is out-of-line
 
 ---
 

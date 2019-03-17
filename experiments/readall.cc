@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
   char *data = readall(argv[1]);
   if (!data) {
-    printf("Error reading data\n");
+    printf("Error reading data from %s : %m\n", argv[1]);
     return 2;
   }
   printf("Data read from file '%s':\n", argv[1]);
