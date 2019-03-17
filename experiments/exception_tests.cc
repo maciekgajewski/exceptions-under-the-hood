@@ -67,6 +67,28 @@ void catch_derived_non_virtual_by_const_ref() {
   }
 }
 
+void catch_std_exception() {
+  try {
+
+    std::cout << " # Will catch std exception" << std::endl;
+    throw_std_exception("boo");
+  } catch (const std::exception &e) {
+    std::cout << "std::exception caught: " << e.what() << std::endl;
+  }
+}
+
+void catch_int() {
+  try {
+    std::cout << " # Will catch int" << std::endl;
+    throw_int(77);
+  } /*catch (int x) {
+    std::cout << "int caught: " << x << std::endl;
+  }*/
+  catch (...) {
+    std::cout << "... caught" << std::endl;
+  }
+}
+
 int main() {
 
   std::cout << "Starting tests" << std::endl;
@@ -81,4 +103,6 @@ int main() {
   catch_by_const_ref();
   catch_derived_by_const_ref();
   catch_derived_non_virtual_by_const_ref();
+  catch_std_exception();
+  catch_int();
 }
