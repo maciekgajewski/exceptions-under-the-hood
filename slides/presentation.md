@@ -363,8 +363,9 @@ background-image: url(pics/maclisp-exceptions.jpg)
 ## The basics
 
 .pull-left[
+Catching
 
-  ```c++
+```c++
   int error_handler(int p) {
     try {
       auto x = foo(p);
@@ -377,6 +378,7 @@ background-image: url(pics/maclisp-exceptions.jpg)
 
 ]
 .pull-right[
+Throwing
 
 ``` c++
 int bar(int p) {
@@ -386,6 +388,7 @@ int bar(int p) {
 }
 ```
 
+"Innocent bystander"
 ```c++
 int bystander(int p) {
   Widget w;
@@ -401,6 +404,229 @@ There are 3 main scenarios:
 * Throwing exception
 * Handling exception
 * "Innocent bystander"
+
+---
+
+## Catching
+
+```c++
+  int error_handler(int p) {
+    try {
+      return fun(x);
+    }
+    catch(const std::logic_error& e) {
+      on_logic_error(e.what());
+    }
+    catch(const std::exception& e) {
+      log_err(e.what());
+    }
+    catch(int error_code) {
+      log_err(strerror(error_code));
+    }
+    catch(...) {
+      log_err("Unknown error");
+    }
+  }
+```
+
+???
+
+* Catch ladder looks a bit like function overloading
+* But in fact is more akin to a switch statement
+* Catch block are evaluated at runtime in order of appearance
+* Type is the key, const/volatile/reference is ignored
+
+---
+
+## Quiz
+
+Which handler will be called?
+
+```c++
+try {
+  throw 7;
+}
+catch (const int e) {
+  // A
+}
+catch (int e) {
+  // B
+}
+catch(...) {
+  // C
+}
+```
+
+???
+
+This code won't compile, or it will generate a warning
+
+---
+
+## Quiz (2)
+
+Which handler will be called?
+
+```c++
+try {
+  throw 7;
+}
+catch (unsigned int e) {
+  // A
+}
+catch (int e) {
+  // B
+}
+catch(...) {
+  // C
+}
+```
+
+???
+
+'unsigned int' is different type than 'int'
+
+---
+
+## Quiz (3)
+
+Which handler will be called?
+
+```c++
+try {
+  throw 7u;
+}
+catch (unsigned int e) {
+  // A
+}
+catch (int e) {
+  // B
+}
+catch(...) {
+  // C
+}
+```
+
+???
+
+'unsigned int' is different type than 'int'
+
+---
+
+## noexcept specifier
+
+"The noexcept-specification is a part of the function type and may appear as part of any function declarator"
+```c++
+void fun() noexcept => void fun() noexcept(constexpr-true)
+```
+
+```c++
+void fun() => void fun() noexcept(constexpr-false)
+```
+
+By default, the below are `noexcept(true)`:
+
+* destructors
+* default constructors, copy constructors, move constructors
+* default copy-assignment operators, move-assignment operators
+* deallocation functions
+
+Replaces `throw()`
+
+???
+
+* noexcept is also an operator, but this is outside of the scope
+* since C++11, replaces obsolete throw() specification
+
+---
+
+## std::terminate
+
+* Called when no suitable handler for exception can be thrown
+* Can be set by the user: `std::set_terminate`, `std::get_terminate`
+* Type: `std::terminate_handler`
+
+There used to be `std::unexpected`, working with `throw()`
+
+???
+
+* std::terminate is also a part of exception handling mechanism
+* Allows the user to customize the handling of uncaught exceptions
+
+---
+
+## std::exception_ptr
+
+Get current exception:
+```c++
+std::exception_ptr std::current_exception() noexcept;
+```
+
+Rethrow the exception:
+```c++
+[[noreturn]] void std::rethrow_exception(std::exception_ptr p);
+```
+
+Check if there are exceptions in-flight
+```c++
+int std::uncaught_exceptions() noexcept;
+```
+
+Make your own:
+```c++
+template<class E> std::exception_ptr std::make_exception_ptr(E e) noexcept;
+```
+
+???
+
+* Very opaque smart pointer
+* Allows for storing current exception
+* Allows for transferring the exception, ie across threads
+
+---
+
+## Party trick
+
+```c++
+class ExceptionDetector {
+
+  int exception_count;
+
+public:
+
+  ExceptionDetector() {
+    exception_count_ = std::uncaught_exceptions();
+  }
+
+  ~ExceptionDetector() {
+    if (std::uncaught_exceptions() == exception_count)
+      std::cout << "Going out of scope" << std::endl;
+    else
+      std::cout << "Stack unwinding!" << std::endl;
+  }
+};
+```
+
+???
+
+I don't know oif this is useful, but it's cool!
+
+<!-- ============================ RTTI ============================ -->
+---
+class: center, middle
+
+# Chapter III
+
+## RTTI
+
+(Run-time type identification)
+
+???
+
+* RunTime Type Identification
+* RTTI is a key component of exception handling implementation
+* The closest C++ (currently) has to reflection
+
 
 <!-- ========================== the End ============================ -->
 
