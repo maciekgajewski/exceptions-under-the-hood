@@ -3,19 +3,16 @@
 #include <exception>
 #include <iostream>
 
-namespace sjljexceptions {
+namespace sjlj {
 
-static thread_local ExceptionData *current_scope = nullptr;
+thread_local ExceptionData *current_scope = nullptr;
 
-bool _try(ExceptionData &ed) {
+void before_try(ExceptionData &ed) {
   ed.prev = current_scope;
-  if (setjmp(ed.ctx) == 0) {
-    return true;
-  } else {
-    current_scope = ed.prev;
-    return false;
-  }
+  current_scope = &ed;
 }
+
+void end_catch(ExceptionData &ed) { current_scope = ed.prev; }
 
 void _throw(int error_code) {
   if (!current_scope) {
@@ -27,4 +24,15 @@ void _throw(int error_code) {
   std::longjmp(current_scope->ctx, 1);
 }
 
-} // namespace sjljexceptions
+void continue_unwinding(ExceptionData &ed) {
+  current_scope = ed.prev;
+  if (!current_scope) {
+    std::cerr << "_throw w/o catch" << std::endl;
+    std::abort();
+  }
+
+  current_scope->error_code = ed.error_code;
+  std::longjmp(current_scope->ctx, 1);
+}
+
+} // namespace sjlj

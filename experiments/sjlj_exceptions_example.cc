@@ -8,15 +8,24 @@ void thrower(int value) {
   if (value > 100) {
     int error_code = value;
     std::cout << "Throwing " << error_code << std::endl;
-    sjljexceptions::_throw(error_code);
+    sjlj::_throw(error_code);
   } else {
     std::cout << "not throwing" << std::endl;
   }
 }
 
 void bystander(int value) {
-  Widget w("bystabder");
-  thrower(value);
+  Widget w("bystander");
+
+  sjlj::ExceptionData exception;
+  sjlj::before_try(exception);
+
+  if (!setjmp(sjlj::current_scope->ctx)) {
+    thrower(value);
+  } else {
+    w.~Widget();
+    sjlj::continue_unwinding(exception);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -32,14 +41,18 @@ int main(int argc, char **argv) {
     std::exit(2);
   }
 
-  sjljexceptions::ExceptionData exception;
-  if (sjljexceptions::_try(exception)) {
+  sjlj::ExceptionData exception;
+  sjlj::before_try(exception);
+  if (!setjmp(sjlj::current_scope->ctx)) {
     std::cout << "Calling bystander, value=" << value << std::endl;
     bystander(value);
-    std::cout << "Bysrtabder exited cleanly" << std::endl;
+
+    std::cout << "Bystander exited cleanly" << std::endl;
   } else {
     std::cout << "Exception caught. error code: " << exception.error_code
               << std::endl;
+
+    sjlj::end_catch(exception);
   }
 
   std::cout << "The end" << std::endl;
