@@ -28,10 +28,59 @@ Maciek Gajewski
 * Now: Freelance, Crypto-currency trading
 * Active member of C++ community, previously in A'dam, now in W-w
 
+
+<!-- =================== Introduction ==================== -->
+
+<!-- TODO:
+* exceptions are complex
+* many implementations
+* depends on both platform and compiler
+* list docos:
+ - itianium ABI
+  - ARM aBI
+  Windows SEH, 32, 64
+   - ? gcc SJLS exceptions?
+-->
+
 ---
 class: center, middle
 
+# Introduction
+
+---
+
+## Exceptions are complex!
+
+.pull-left[
+* Multiple actors
+    - compiler
+    - linker, runtime
+]
+.pull-right[
+* Multiple standards
+    - SJLJ Exceptions
+    - DWARF-2 EH
+    - Itanium ABI
+    - ARM ABI
+    - Windows SEH, 32, 64 bit
+]
+.center[
+<img src="pics/itscomplicated.jpg" height="300"/>
+]
+
+???
+
+* There is many actors than need to play together for exceptions to work
+* Part of it compiler-specific, part is system specific
+* Many standards that implement the exception in a very different way
+* Itanium is important - unifies exception handling across compilers
+* ARM follows Itanium is just smaller
+* Win32 is terrible, with hardware exceptions, 64 is similar to Itanium
+* Winbdows: gcc had issue wth exceptions going trough foreign stack frames
+
 <!-- ================= Chapter I - C ==================== -->
+---
+class: center, middle
 
 # Chapter I
 
@@ -636,4 +685,7 @@ class: center, middle
 * Maciej Gajewski <maciej.gajewski0@gmail.com>
 * This presentation: https://maciekgajewski.github.io/exceptions-under-the-hood/
 * Compiler Explorer: https://gcc.godbolt.org
+* Itanium ABI: https://itanium-cxx-abi.github.io/cxx-abi/
+* Exception Handling ABI for the ARM® Architecture: http://infocenter.arm.com/help/topic/com.arm.doc.ihi0038b/IHI0038B_ehabi.pdf
+* WIESS Paper: https://www.usenix.org/legacy/events/osdi2000/wiess2000/full_papers/dinechin/dinechin_html/#31449
 * CppCon 2017, _“What Has My Compiler Done for Me Lately?”_, Matt Godbolt

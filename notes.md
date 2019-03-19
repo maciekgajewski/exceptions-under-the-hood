@@ -18,6 +18,7 @@
 - http://www.softwarepreservation.org/projects/LISP/MIT/Moon-MACLISP_Reference_Manual-Apr_08_1974.pdf
 - https://www.youtube.com/watch?v=XpRL7exdFL8 - interesting video with unwinding details
 - https://www.airs.com/blog/archives/460 - eh_frame description
+- https://www.usenix.org/legacy/events/osdi2000/wiess2000/full_papers/dinechin/dinechin_html/ - great overview
 
 # TODO
 
@@ -32,7 +33,7 @@
 - mixing exception-aware and -unaware code
 - itianium ABI - what is this, what are the alternatives?
 - resumptive exception handling 
-- how frame pointer worksd:
+- how frame pointer works:
 - show std::uncaught_exceptions() 
 - show std::exception_ptr and others
 - show 2 exceptions in flight
