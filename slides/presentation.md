@@ -49,12 +49,13 @@ class: center, middle
 
 ---
 
-## Exceptions are complex!
+## Exceptions: it's complicated
 
 .pull-left[
 * Multiple actors
     - compiler
-    - linker, runtime
+    - linker
+    - runtime
 ]
 .pull-right[
 * Multiple standards
@@ -101,7 +102,7 @@ int open(const char *pathname, int flags);
 ```
 RETURN VALUE
   open() return the new file descriptor, or -1 if an error occurred
-  (in which case, errnois set appropriately).
+  (in which case, errno is set appropriately).
 ```
 
 ???
@@ -113,6 +114,8 @@ RETURN VALUE
 --
 
 ### Errno is not a variable!
+
+--
 
 ```c
 extern int *__errno_location (void) __THROW __attribute_const__;
@@ -215,8 +218,8 @@ char* readall(const char* pathname) {
 ???
 
 * The goal: propagate error to the caller
-* Let caller decide if the error should be habdled gracioulsy
-* Is it a correct code?
+* Let caller decide if the error should be handled graciously
+* Is this a correct code?
 
 ---
 ## Releasing resources
@@ -285,6 +288,7 @@ char* readall(const char* pathname) {
         goto read_failed;
       pos += r;
   }
+  return data;
   // to be continued...
 ```
 ]
@@ -366,14 +370,20 @@ void fun_c() {
 
 ???
 
-* The goal of harsware exceptions is to notify user code if something bad happens
-* User code can alos raise an exceptions
+* The goal of hardware exceptions is to notify user code if something bad happens
+* User code can also raise an exceptions
 * Exception can be asynchronous
 * Execution can resume
 
 ---
 
-## Chapter summary
+background-image: url(pics/except89.jpg)
+
+
+???
+
+The picture is from 1989 exceptions proposal paper.
+source: http://www.stroustrup.com/except89.pdf
 
 * Sometimes you just want the program to die on error
 * ... but sometimes not.
@@ -382,12 +392,19 @@ void fun_c() {
 * ... and then you wanrt the program to remain consistent.
 * It's good to know what went wrong, if only to print an error message
 
-???
-
 I think by now the design principles behind C++ exceptions are clear.
 
-<!-- ===================== Chapter II - C++ exceptions =============== -->
 
+---
+background-image: url(pics/maclisp-exceptions.jpg)
+
+???
+
+* Page from MacLisp manual, 1974: 
+* Source: http://www.softwarepreservation.org/projects/LISP/MIT/Moon-MACLISP_Reference_Manual-Apr_08_1974.pdf
+* Exceptions we used in earlier versions of Lips, but different keyword were used
+
+<!-- ===================== Chapter II - C++ exceptions =============== -->
 ---
 class: center, middle
 
@@ -400,18 +417,32 @@ class: center, middle
 Introduced in 1990
 
 ---
-background-image: url(pics/maclisp-exceptions.jpg)
-
-???
-
-* Page from MacLisp manual, 1974
-* Exceptions we used in earlier versions of Lips, but different keyword were used
-
----
 
 ## The basics
 
 .pull-left[
+Throwing
+
+```c++
+int bar(int p) {
+  if (p == 666)
+    throw std::logic_error("Evil!");
+  return p+7;
+}
+```
+
+"Innocent bystander"
+
+```c++
+int bystander(int p) {
+  Widget w;
+  return w.baz(bar(p) + foo(p));
+}
+```
+
+]
+
+.pull-right[
 Catching
 
 ```c++
@@ -423,26 +454,6 @@ Catching
       log_err(e.what());
     }
   }
-```
-
-]
-.pull-right[
-Throwing
-
-``` c++
-int bar(int p) {
-  if (p == 666)
-    throw std::logic_error("Evil!");
-  return p+7;
-}
-```
-
-"Innocent bystander"
-```c++
-int bystander(int p) {
-  Widget w;
-  return w.baz(bar(p) + foo(p));
-}
 ```
 
 ]
@@ -591,13 +602,19 @@ Replaces `throw()`
 
 ## std::terminate
 
+* `std::set_terminate(std::terminate_handler h)`
+* `std::get_terminate(std::terminate_handler h)`
+
+Obsolete, used to work with `throw()`
+* `std::unexpected()`
+
+???
+
 * Called when no suitable handler for exception can be thrown
 * Can be set by the user: `std::set_terminate`, `std::get_terminate`
 * Type: `std::terminate_handler`
 
-There used to be `std::unexpected`, working with `throw()`
-
-???
+* There used to be `std::unexpected`, working with `throw()`
 
 * std::terminate is also a part of exception handling mechanism
 * Allows the user to customize the handling of uncaught exceptions
