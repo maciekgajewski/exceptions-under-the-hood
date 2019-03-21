@@ -24,3 +24,5 @@ add_executable(sjlj_exceptions
   sjlj_exceptions.cc sjlj_exceptions.hh sjlj_exceptions_example.cc widget.hh widget.cc)
 
 add_executable(readall readall.cc)
+
+add_executable(typeid_test typeid.cc)

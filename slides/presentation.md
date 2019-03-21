@@ -693,6 +693,102 @@ class: center, middle
 * RTTI is a key component of exception handling implementation
 * The closest C++ (currently) has to reflection
 
+---
+
+# The 'typeid' operator
+
+```c++
+const std::type_info& ti = typeid(value);
+```
+
+```c++
+const std::type_info& ti = typeid(Type);
+```
+
+```sh
+$ objdump -T libstdc++.so|c++filt|grep 'typeinfo for'|wc -l
+260
+```
+
+???
+
+* Compiler generates global variable for every type
+* typeid may be invoked on type or value
+* for static types it's the same
+* for virtual types, the typeinfo is loaded from vtable
+* GCC 7' C++ lib contains 260 typeinfos
+
+---
+
+# The 'std::type_info' class
+
+```c++
+class type_info {
+  type_info() = delete;
+  type_info(const type_info&) = delete;
+  type_info& operator=(const type_info) = delete;
+
+  bool operator==(const type_info& rhs) const;
+  bool operator!=(const type_info& rhs) const;
+
+  const char* name() const;
+
+  size_t hash_code() const;
+  bool before(const type_info& rhs) const;
+};
+```
+
+???
+
+* This is the tip of the iceberg that we're allowed to see
+* The 'name' may be mangled
+
+---
+
+# The 'std::type_info' class (2)
+
+As defined by the Itanium ABI
+
+For classes with single base:
+
+```c++
+class __si_class_type_info : public __class_type_info {
+	public:
+	  const __class_type_info *__base_type;
+};
+```
+
+---
+
+# The 'std::type_info' class (3)
+
+For classes with multiple bases:
+
+```c++
+class __vmi_class_type_info : public __class_type_info {
+	public:
+	  unsigned int __flags;
+	  unsigned int __base_count;
+	  __base_class_type_info __base_info[1];
+
+	  enum __flags_masks {
+	    __non_diamond_repeat_mask = 0x1,
+	    __diamond_shaped_mask = 0x2
+	  };
+};
+
+struct abi::__base_class_type_info {
+    const __class_type_info *__base_type;
+    long __offset_flags;
+
+    enum __offset_flags_masks {
+      __virtual_mask = 0x1,
+      __public_mask = 0x2,
+      __offset_shift = 8
+    };
+};
+```
+
 
 <!-- ========================== the End ============================ -->
 
