@@ -788,6 +788,121 @@ struct abi::__base_class_type_info {
     };
 };
 ```
+<!-- ============================ Exceptions ============================ -->
+---
+class: center, middle
+
+# Chapter IV
+
+### Exceptions: How are they implemented
+
+.center[
+<img src="pics/finally.jpg" height="250"/>
+]
+
+???
+
+* Finally, we arrive art this point of the presentation, after as many slides
+
+---
+
+## Disclaimer
+
+* Everything wil be simplified
+* Pseudo - code
+* Old (SJLJ) vs NEW ("zero-cost")
+
+???
+
+* Everything in this chapter will be a simplification and caricature
+* There is too many standards, details, micro-optimizations etc
+* I will boil down everything toi the lowest common denominator
+
+---
+
+## Throw
+
+```c++
+void fun() {
+  throw Error(p0, p1);
+}
+```
+
+--
+
+```c++
+thread_local __cxa_exception *global_exception = nullptr;
+
+struct __cxa_exception { 
+	std::type_info  *exceptionType;
+	void (*exceptionDestructor) (void *); 
+	__cxa_exception *nextException;
+};
+
+void fun() {
+
+  __cxa_exception *temp = __cxa_allocate_exception(sizeof(Error));
+
+  new(temp+sizeof(__cxa_exception)) Error(p0, p1);
+
+  temp.exceptionType = &typeid(Error);
+  temp.exceptionDestructor = &Error::~Error;
+  temp.nextException = global_exception;
+  global_exception = temp;
+
+  __cxa_throw(temp); // Never returns
+}
+```
+???
+
+1. Exception is allocated _somwhere_
+2. Exception is preceded by a header, that contains type-erasure info
+3. Exception info is added to a global linked-list of exceptions
+4. Control is passed to a stack-unwinding routine
+
+---
+
+## Throw
+
+.pull-left[
+```c++
+struct Error {
+    Error(int a, int b) noexcept;
+    ~Error();
+private:
+    char data[77];
+};
+
+void throw_error() {
+    throw Error(44, 55);
+}
+```
+]
+.pull-right[
+```asm
+throw_error(): # @throw_error()
+  push rbx
+  mov edi, 77
+  call __cxa_allocate_exception
+  mov rbx, rax
+  mov rdi, rax
+  mov esi, 44
+  mov edx, 55
+  call Error::Error(int, int)
+  mov esi, offset typeinfo for Error
+  mov edx, offset Error::~Error()
+  mov rdi, rbx
+  call __cxa_throw
+typeinfo name for Error:
+  .asciz "5Error"
+
+typeinfo for Error:
+  .quad vtable for 
+    __cxxabiv1::__class_type_info+16
+  .quad typeinfo name for Error
+```
+]
+
 
 
 <!-- ========================== the End ============================ -->

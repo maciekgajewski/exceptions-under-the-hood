@@ -20,7 +20,7 @@
 - https://www.airs.com/blog/archives/460 - eh_frame description
 - https://www.usenix.org/legacy/events/osdi2000/wiess2000/full_papers/dinechin/dinechin_html/ - great overview
 - http://www.stroustrup.com/except89.pdf
-
+- https://www.codeproject.com/Articles/2126/How-a-C-compiler-implements-exception-handling - details on SEH
 # TODO
 
 - explain "personality routine"
