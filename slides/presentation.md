@@ -822,6 +822,18 @@ class: center, middle
 
 ## Throw
 
+1. Allocate exception object
+2. Scan stack for suitable 'catch' block
+3. If found: 
+  2. Unwind stack
+  1. Transfer control
+4. If not found:
+  1. Call `std::terminate`
+
+---
+
+## Throw (Itanium)
+
 ```c++
 void fun() {
   throw Error(p0, p1);
@@ -841,6 +853,7 @@ struct __cxa_exception {
 
 void fun() {
 
+  // allocate sizeof(__cxa_exception) + sizeof(Error)
   __cxa_exception *temp = __cxa_allocate_exception(sizeof(Error));
 
   new(temp+sizeof(__cxa_exception)) Error(p0, p1);
@@ -862,7 +875,8 @@ void fun() {
 
 ---
 
-## Throw
+## Throw (Itanium, asm)
+
 
 .pull-left[
 ```c++
@@ -903,7 +917,83 @@ typeinfo for Error:
 ```
 ]
 
+---
 
+# Throw (MSVC)
+
+```c++
+void fun() {
+  throw Error(p0, p1);
+}
+```
+
+--
+
+```c++
+struct _ThrowInfo {
+  std::type_info  *exceptionType;
+	void (*exceptionDestructor) (void *);
+};
+
+_ThrowInfo _TI1Error {
+  &typeid(Error),
+  &Error::~Error
+};
+
+void fun() {
+  Error e(p0, p1);
+  _CxxThrowException(&e, &_TI1Error); // never returns
+}
+```
+
+???
+
+* an instance of _ThrowInfo is created for every exception thrown, just like std::type_info
+* The actual exception is created on the stack, which will make things more interesting later on
+
+---
+
+# Throw (MSVC, asm)
+
+.pull-left[
+```c++
+struct Error {
+    Error(int a, int b) noexcept;
+    ~Error();
+private:
+    char data[77];
+};
+
+void throw_error() {
+    throw Error(44, 55);
+}
+```
+]
+.pull-right[
+```asm
+xdata$x SEGMENT
+_TI1 ?? AUError DD 00H
+  DD imagerel Error::~Error(void)
+  DD 00H
+  DD imagerel _CTA1 ?? AUError
+xdata$x ENDS
+
+void throw_error(void) PROC
+$LN4:
+  sub rsp, 136 ; 00000088H
+  mov rax, QWORD PTR __security_cookie
+  xor rax, rsp
+  mov QWORD PTR __$ArrayPad$[rsp], rax
+  mov edx, 44 ; 0000002cH
+  lea rcx, QWORD PTR $T1[rsp]
+  lea r8d, QWORD PTR [rdx+11]
+  call Error::Error(int,int)
+  lea rdx, OFFSET FLAT:_TI1??AUError
+  lea rcx, QWORD PTR $T1[rsp]
+  call _CxxThrowException
+  int 3
+```
+]
 
 <!-- ========================== the End ============================ -->
 
