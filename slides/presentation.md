@@ -995,6 +995,156 @@ $LN4:
 ```
 ]
 
+???
+
+* The int3 at the end is a breakpoint
+
+---
+
+# Catch (Itanium, new)
+
+.pull-left[
+```c++
+struct Widget {
+    Widget() noexcept;
+    ~Widget();
+};
+
+void foo();
+void on_error() noexcept;
+
+void fun2() {
+    Widget w;
+    foo();
+    try {
+        foo();
+    } catch(const std::exception& e) {
+        on_error(); 
+    }
+}
+```
+]
+--
+.pull-right[
+```c++
+void fun2() {
+  Widget w;
+  Widget::Widget(&w);
+  foo();
+  foo();
+  LBB0_5:
+  ~Widget::Widget(&w);
+  return;
+  __cxa_begin_catch();
+  on_error();
+  __cxa_end_catch();
+  goto LBB0_5:
+  ~Widget::Widget(&w);
+  _Unwind_Resume();
+}
+```
+]
+
+---
+
+# Catch (Itanium, SJLJ)
+
+.pull-left[
+```c++
+struct Widget {
+    Widget() noexcept;
+    ~Widget();
+};
+
+void foo();
+void on_error() noexcept;
+
+void fun2() {
+    Widget w;
+    foo();
+    try {
+        foo();
+    } catch(const std::exception& e) {
+        on_error();
+    }
+}
+```
+]
+
+.pull-right[
+```c++
+void fun2() {
+  STATE _state; // > 100 bytes
+  Widget w;
+  Widget::Widget(&w);
+  _Unwind_SjLj_Register(&state);
+  _state.id = 1;
+  foo();
+  _state.id = 2;
+  foo();
+end_try:
+  ~Widget::Widget(&w);
+  _Unwind_SjLj_Unregister(&state);
+  return;
+cleanup:
+  Widget::~Widget(&w);
+  _Unwind_SjLj_Resume();
+action1:
+  __cxa_begin_catch();
+  on_error();
+  _state.id = 3;
+  __cxa_end_catch();
+  goto end_try:
+}
+```
+]
+
+---
+
+# Catch (Itanium, SJLJ)
+
+.pull-left[
+```json
+{
+  "action_cleanup": "cleanup",
+  "action_1" :{
+    "filter" :
+      "&typeid(std::exception)",
+    "callsite_1" : "cleanup",
+    "callsite_2" : "catch_block"
+  }
+}
+```
+]
+
+.pull-right[
+```c++
+void fun2() {
+  STATE _state; // > 100 bytes
+  Widget w;
+  Widget::Widget(&w);
+  _Unwind_SjLj_Register(&state);
+  _state.id = 1;
+  foo();
+  _state.id = 2;
+  foo();
+end_try:
+  ~Widget::Widget(&w);
+  _Unwind_SjLj_Unregister(&state);
+  return;
+cleanup:
+  Widget::~Widget(&w);
+  _Unwind_SjLj_Resume();
+catch_block:
+  __cxa_begin_catch();
+  on_error();
+  _state.id = 3;
+  __cxa_end_catch();
+  goto end_try:
+}
+```
+]
+
 <!-- ========================== the End ============================ -->
 
 ---
