@@ -1495,6 +1495,300 @@ background-image: url(pics/iknowexceptions.jpg)
 
 * Break. The worst is behind us
 
+---
+class: center, middle
+
+# Chapter V
+
+## noexcept
+
+???
+
+This chapter will explore the influence of noexcept on the generated code
+
+---
+class: asmslide 
+# noexcept
+
+.pull-left[
+```c++
+struct Widget {
+    Widget();
+    ~Widget();
+};
+void foo();
+void fun() {
+    Widget w;
+    foo();
+}
+```
+]
+--
+.pull-right[
+```asm
+fun():
+        push    rbx
+        sub     rsp, 16
+        lea     rdi, [rsp+15]
+.LEHB0:
+        call    Widget::Widget() [complete object constructor]
+.LEHE0:
+.LEHB1:
+        call    foo()
+.LEHE1:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget() [complete object destructor]
+        add     rsp, 16
+        pop     rbx
+        ret
+        mov     rbx, rax
+        jmp     .L2
+fun() [clone .cold.0]:
+.L2:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget() [complete object destructor]
+        mov     rdi, rbx
+        call    _Unwind_Resume
+```
+]
+
+???
+
+* The landing pad is generated, and the call to foo() is treaded as a potential source of exception
+
+---
+class: asmslide 
+# noexcept (2)
+
+.pull-left[
+```c++
+struct Widget {
+    Widget();
+    ~Widget()=default;
+};
+void foo();
+void fun() {
+    Widget w;
+    foo();
+}
+```
+]
+
+--
+
+.pull-right[
+```asm
+fun():
+        sub     rsp, 24
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+        call    foo()
+        add     rsp, 24
+        ret
+```
+]
+
+???
+
+* The destructor is inlined, and it tuens out there it's empty, i has no observable side effects
+* No need to generate landing pad or excaption table for the function
+* The constructor in this exampledoesn't have to be empty; it simply should have no observable side effects
+
+---
+class: asmslide 
+# noexcept (3)
+
+.pull-left[
+```c++
+struct Widget {
+    Widget();
+    ~Widget();
+};
+void foo() noexcept;
+void fun() {
+    Widget w;
+    foo();
+}
+```
+]
+
+--
+
+.pull-right[
+```asm
+fun():
+        sub     rsp, 24
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+        call    foo()
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget()
+        add     rsp, 24
+        ret```
+]
+
+???
+
+* In this case, call to 'foo' is not considered to be a throwing call.
+---
+class: asmslide 
+# noexcept (4)
+
+.pull-left[
+```c++
+void foo();
+void bar();
+void fun(){
+    foo();
+    bar();
+}
+```
+]
+
+--
+
+.pull-right[
+```asm
+fun():
+        sub     rsp, 8
+        call    foo()
+        add     rsp, 8
+        jmp     bar()
+```
+]
+
+???
+
+* No landing pad and no EH table is generated for this function
+---
+class: asmslide 
+# noexcept (5)
+
+.pull-left[
+```c++
+void foo();
+void bar() noexcept;
+void fun(){
+    foo();
+    bar();
+}```
+]
+
+--
+
+.pull-right[
+```asm
+fun():
+        sub     rsp, 8
+        call    foo()
+        add     rsp, 8
+        jmp     bar()
+```
+]
+
+???
+
+* Then 'noexceptness' of 'bar' has no impact
+
+---
+
+class: asmslide 
+# noexcept (6)
+
+.pull-left[
+```c++
+struct Widget {
+    Widget();
+    ~Widget();
+};
+void foo();
+void bar() noexcept;
+void fun() {
+    Widget w1;
+    foo();
+    Widget w2;
+    bar();
+}
+```
+]
+
+--
+
+.pull-right[
+```asm
+fun():
+        push    rbx
+        sub     rsp, 16
+        lea     rdi, [rsp+14]
+.LEHB0:
+        call    Widget::Widget()
+.LEHE0:
+.LEHB1:
+        call    foo()
+.LEHE1:
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+        call    bar()
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget()
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+        add     rsp, 16
+        pop     rbx
+        ret
+        mov     rbx, rax
+        jmp     .L2
+fun() [clone .cold.0]:
+.L2:
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+        mov     rdi, rbx
+        call    _Unwind_Resume
+```
+]
+
+???
+
+* The table is generated for the function, but the landing pad only deatroys w1
+* If exception is thrown from 'bar', then the unwinding routine will find no matching call-site, and call std::terminate
+
+---
+
+class: asmslide 
+# noexcept (7)
+
+.pull-left[
+```c++
+void foo();
+
+void bar() noexcept {
+    foo();
+}
+```
+]
+
+---
+
+.pull-right[
+```asm
+bar():
+        jmp     foo()
+.LLSDA0:
+        .byte   0xff
+        .byte   0xff
+        .byte   0x1
+        .uleb128 .LLSDACSE0-.LLSDACSB0
+.LLSDACSB0:
+.LLSDACSE0:
+```
+]
+
+???
+
+* This is the last assembly slide
+* If 'noexcept' function contains a potnetially throwing call, an empoty EH table is generated for it,
+* so that std::terminate will be called in the event of stack unwinding
+
 
 <!-- ========================== the End ============================ -->
 
