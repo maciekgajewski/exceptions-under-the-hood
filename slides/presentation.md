@@ -154,10 +154,11 @@ while (pos < sb.st_size) {
 ???
 * Simple C code reading file content into a buffer
 * Easy to read, but no error handling
+* Insert Rufus story here?
 
 ---
 
-## Return value (2)
+## Return value (3)
 
 ```c
 int fd, r, pos;
@@ -189,7 +190,7 @@ while (pos < sb.st_size) {
 * What if we want to turn it into a library?
 
 ---
-## Return value (2)
+## Return value (4)
 
 ```c
 char* readall(const char* pathname) {
@@ -388,8 +389,8 @@ source: http://www.stroustrup.com/except89.pdf
 * Sometimes you just want the program to die on error
 * ... but sometimes not.
 * Sometimes you want to check the error locally
-* ... but sometimes you want cental handling
-* ... and then you wanrt the program to remain consistent.
+* ... but sometimes you want central handling
+* ... and then you want the program to remain consistent.
 * It's good to know what went wrong, if only to print an error message
 
 I think by now the design principles behind C++ exceptions are clear.
