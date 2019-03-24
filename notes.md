@@ -18,6 +18,7 @@
 - http://www.softwarepreservation.org/projects/LISP/MIT/Moon-MACLISP_Reference_Manual-Apr_08_1974.pdf
 - https://www.youtube.com/watch?v=XpRL7exdFL8&feature=youtu.be - interesting video with unwindong details
 - https://www.airs.com/blog/archives/460 - eh_frame description
+- https://refspecs.linuxfoundation.org/LSB_3.0.0/LSB-PDA/LSB-PDA.junk/ehframechpt.html - specs
 
 # TODO
 
