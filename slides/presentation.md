@@ -874,7 +874,7 @@ void fun() {
 4. Control is passed to a stack-unwinding routine
 
 ---
-
+class: asmslide
 ## Throw (Itanium, asm)
 
 
@@ -952,7 +952,7 @@ void fun() {
 * The actual exception is created on the stack, which will make things more interesting later on
 
 ---
-
+class: asmslide
 # Throw (MSVC, asm)
 
 .pull-left[
@@ -998,152 +998,149 @@ $LN4:
 ???
 
 * The int3 at the end is a breakpoint
+* The int3 is there so that the unwinder does not treatthe preceeding instructions as an 'epilogue'
+
+---
+## Bystander
+
+.pull-left[
+```C++
+void fun() {
+  Widget w1;
+  foo();
+  Widget w2;
+  foo();
+  Widget w2;
+  foo();
+}
+```
+]
+
+???
+
+Let's consider this simple function
 
 ---
 
-# Catch (Itanium, new)
+## Bystander (Old SJLJ)
 
 .pull-left[
-```c++
-struct Widget {
-    Widget() noexcept;
-    ~Widget();
+```C++
+void fun() {
+  Widget w1;
+  foo();
+  Widget w2;
+  foo();
+  Widget w2;
+  foo();
+}
+```
+```C++
+SjLj_Function_Context* _sjlf_fc;
+
+struct SjLj_Function_Context {
+  SjLj_Function_Context *prev;
+  int call_site;
+  void* exception_table;
+  void *cleanup;
+  jmp_buf jbuf;
 };
 
-void foo();
-void on_error() noexcept;
-
-void fun2() {
-    Widget w;
-    foo();
-    try {
-        foo();
-    } catch(const std::exception& e) {
-        on_error(); 
-    }
-}
 ```
 ]
---
 .pull-right[
-```c++
-void fun2() {
-  Widget w;
-  Widget::Widget(&w);
+```C++
+void fun() {
+  SjLj_Function_Context _ctx;
+  Widget w1;
+  _ctx.prev = _sjlf_fc;
+  _ctx.cleanup = &&cleanup_block;
+  _sjlf_fc = &_ctx;
+  _ctx.call_side = 1;
   foo();
+  Widget w2;
+  _ctx.call_side = 2;
   foo();
-  LBB0_5:
-  ~Widget::Widget(&w);
+  Widget w3;
+  _ctx.call_side = 3;
+  foo();
+  ~Widget::Widget(&w3);
+  ~Widget::Widget(&w2);
+  ~Widget::Widget(&w1);
+  _sjlf_fc = _ctx.prev;
   return;
-  __cxa_begin_catch();
-  on_error();
-  __cxa_end_catch();
-  goto LBB0_5:
-  ~Widget::Widget(&w);
-  _Unwind_Resume();
-}
-```
-]
-
----
-
-# Catch (Itanium, SJLJ)
-
-.pull-left[
-```c++
-struct Widget {
-    Widget() noexcept;
-    ~Widget();
-};
-
-void foo();
-void on_error() noexcept;
-
-void fun2() {
-    Widget w;
-    foo();
-    try {
-        foo();
-    } catch(const std::exception& e) {
-        on_error();
-    }
-}
-```
-]
-
-.pull-right[
-```c++
-void fun2() {
-  STATE _state; // > 100 bytes
-  Widget w;
-  Widget::Widget(&w);
-  _Unwind_SjLj_Register(&state);
-  _state.id = 1;
-  foo();
-  _state.id = 2;
-  foo();
-end_try:
-  ~Widget::Widget(&w);
-  _Unwind_SjLj_Unregister(&state);
-  return;
-cleanup:
-  Widget::~Widget(&w);
-  _Unwind_SjLj_Resume();
-action1:
-  __cxa_begin_catch();
-  on_error();
-  _state.id = 3;
-  __cxa_end_catch();
-  goto end_try:
-}
-```
-]
-
----
-
-# Catch (Itanium, SJLJ)
-
-.pull-left[
-```json
-{
-  "action_cleanup": "cleanup",
-  "action_1" :{
-    "filter" :
-      "&typeid(std::exception)",
-    "callsite_1" : "cleanup",
-    "callsite_2" : "catch_block"
+cleanup_block:
+  switch(_ctx.call_side) {
+    3: ~Widget::Widget(&w3);
+    2: ~Widget::Widget(&w2):
+    1: ~Widget::Widget(&w1);
   }
+  _Unwind_SjLj_Resume();
 }
 ```
 ]
 
-.pull-right[
-```c++
-void fun2() {
-  STATE _state; // > 100 bytes
-  Widget w;
-  Widget::Widget(&w);
-  _Unwind_SjLj_Register(&state);
-  _state.id = 1;
+???
+
+* Compiler generates function state block on the stack
+* The blocks are linked as a linked list
+* Block contains, among other things, the information about unwind-cleanup
+
+---
+
+## Bystander (MSVC 32)
+
+.pull-left[
+```C++
+void fun() {
+  Widget w1;
   foo();
-  _state.id = 2;
+  Widget w2;
   foo();
-end_try:
-  ~Widget::Widget(&w);
-  _Unwind_SjLj_Unregister(&state);
-  return;
-cleanup:
-  Widget::~Widget(&w);
-  _Unwind_SjLj_Resume();
-catch_block:
-  __cxa_begin_catch();
-  on_error();
-  _state.id = 3;
-  __cxa_end_catch();
-  goto end_try:
+  Widget w2;
+  foo();
 }
 ```
+
+.smalltable[
+call_site | next | handler
+----------|------------------------
+0         | -1   | __unwindfunclet0
+1         | 0    | __unwindfunclet1
+2         | 1    | __unwindfunclet2
+
 ]
+]
+.pull-right[
+```C++
+void fun() {
+  EXCEPTION_REGISTRATION _ctx;
+  _ctx.prev = _exc_regp;
+  _ctx.cleanup_table = <...>;
+  _sjlf_fc = &_ctx;
+  Widget w1;
+  _ctx.call_side = 0;
+  foo();
+  Widget w2;
+  _ctx.call_side = 1;
+  foo();
+  Widget w3;
+  _ctx.call_side = 2;
+  foo();
+  ~Widget::Widget(&w3);
+  ~Widget::Widget(&w2);
+  ~Widget::Widget(&w1);
+  _sjlf_fc = _ctx.prev;
+  return;
+}
+__unwindfunclet0() {~Widget::Widget(&w1); }
+__unwindfunclet1() {~Widget::Widget(&w2); }
+__unwindfunclet2() {~Widget::Widget(&w3); }
+```
+]
+
+
+
 
 <!-- ========================== the End ============================ -->
 
