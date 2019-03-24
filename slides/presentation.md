@@ -1333,6 +1333,168 @@ background-image: url(pics/itanium-eh-tables.png)
 * Image from Itanium ABI: http://itanium-cxx-abi.github.io/cxx-abi/exceptions.pdf
 * Describes the flow trough the EH tables
 
+---
+
+## Catch
+
+```C++
+void fun() {
+    Widget w1;
+    foo();
+    try {
+        Widget w2;
+        foo();
+    } catch(const std::exception& e) {
+        on_error();
+    }
+}
+```
+
+---
+class: asmslide
+## Catch (Itanium, asm)
+
+.pull-left[
+```asm
+fun():
+.LFB1030:
+        push    rbp
+        push    rbx
+        sub     rsp, 24
+        lea     rdi, [rsp+14]
+        call    Widget::Widget()
+.LEHB0:
+        call    foo()
+.LEHE0:
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+.LEHB1:
+        call    foo()
+.LEHE1:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget() 
+.L5:
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+        add     rsp, 24
+        pop     rbx
+        pop     rbp
+        ret
+```
+]
+.pull-right[
+```asm
+fun() [clone .cold.0]:
+.L2:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget(); w2
+        sub     rbp, 1
+        je      .L11
+.L4:
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget() ; w1
+        mov     rdi, rbx
+        call    _Unwind_Resume
+.L11:
+        mov     rdi, rbx
+        call    __cxa_begin_catch
+        call    on_error()
+        call    __cxa_end_catch
+        jmp     .L5
+```
+]
+
+???
+
+* Catch block code is in rthe cold section as well
+* catch block is surrounded by calls cxa_begin_catch/cxa_end_catch
+* According to Itanium ABI:
+
+__cxa_begin_catch:
+*Increment's the exception's handler count.
+*Places the exception on the stack of currently-caught exceptions if it is not already there, linking the exception to the previous top of the stack.
+*Decrements the uncaught_exception count.
+*Returns the adjusted pointer to the exception object.
+
+__cxa_end_catch:
+* Locates the most recently caught exception and decrements its handler count.
+* Removes the exception from the caught exception stack, if the handler count goes to zero.
+* Destroys the exception if the handler count goes to zero, and the exception was not re-thrown by throw.
+
+* There is also: __cxa_rethrow
+
+---
+class: asmslide
+## Catch (Itanium, asm)
+
+.pull-left[
+```asm
+fun():
+.LFB1030:
+        push    rbp
+        push    rbx
+        sub     rsp, 24
+        lea     rdi, [rsp+14]
+        call    Widget::Widget()
+.LEHB0:
+        call    foo()
+.LEHE0:
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+.LEHB1:
+        call    foo()
+.LEHE1:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget() 
+.L5:
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+        add     rsp, 24
+        pop     rbx
+        pop     rbp
+        ret
+```
+]
+.pull-right[
+```asm
+.LLSDA1030:
+        .byte   0xff
+        .byte   0x3
+        .uleb128 .LLSDATT1030-.LLSDATTD1030
+.LLSDATTD1030:
+        .byte   0x1
+        .uleb128 .LLSDACSE1030-.LLSDACSB1030
+.LLSDACSB1030:
+        .uleb128 .LEHB0-.LFB1030
+        .uleb128 .LEHE0-.LEHB0
+        .uleb128 .L4-.LFB1030
+        .uleb128 0
+        .uleb128 .LEHB1-.LFB1030
+        .uleb128 .LEHE1-.LEHB1
+        .uleb128 .L2-.LFB1030
+        .uleb128 0x3 ; positive => catch
+.LLSDACSE1030:
+        .byte   0 ; type index, T0
+        .byte   0 ; next record
+        .byte   0x1
+        .byte   0x7d
+        .align 4
+        .long   _ZTISt9exception ; T0
+.LLSDATT1030:
+```
+]
+
+???
+
+* Language Specific Data Area for this function
+
+---
+background-image: url(pics/iknowexceptions.jpg)
+
+???
+
+* Break. The worst is behind us
+
 
 <!-- ========================== the End ============================ -->
 

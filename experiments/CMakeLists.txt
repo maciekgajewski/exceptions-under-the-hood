@@ -26,3 +26,6 @@ add_executable(sjlj_exceptions
 add_executable(readall readall.cc)
 
 add_executable(typeid_test typeid.cc)
+
+add_executable(noexcept_false noexcept.cc min.cc foo.cc baz.cc)
+add_executable(noexcept_true noexcept.cc min_ne.cc foo_ne.cc baz.cc)
