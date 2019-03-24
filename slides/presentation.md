@@ -1139,7 +1139,199 @@ __unwindfunclet2() {~Widget::Widget(&w3); }
 ```
 ]
 
+???
 
+* The cleanup code is not part of the function, because the exception is on the stack!
+* Funclets have very special calling convention, among others - they can't have local variables
+* The order is determined by a cleanup table
+
+
+---
+
+## Bystander (modern)
+
+.pull-left[
+Itanium
+```C++
+void fun() {
+  Widget w1;
+  foo();
+  Widget w2;
+  foo();
+  Widget w3;
+  foo();
+  ~Widget::Widget(&w3);
+  ~Widget::Widget(&w2);
+  ~Widget::Widget(&w1);
+  return;
+cleanup_3:
+  ~Widget::Widget(&w3);
+cleanup_2:
+  ~Widget::Widget(&w2);
+cleanup_1:
+  ~Widget::Widget(&w1);
+  _Unwind_Resume
+}
+```
+]
+.pull-right[
+  MSVC x64
+```C++
+void fun() {
+  Widget w1;
+  foo();
+  Widget w2;
+  foo();
+  Widget w3;
+  foo();
+  ~Widget::Widget(&w3);
+  ~Widget::Widget(&w2);
+  ~Widget::Widget(&w1);
+  return;
+}
+__unwindfunclet0() {~Widget::Widget(&w1); }
+__unwindfunclet1() {~Widget::Widget(&w2); }
+__unwindfunclet2() {~Widget::Widget(&w3); }
+```
+]
+
+???
+
+* Around 1999 DWARF appeared, which allows for non-intrusive stack unwinding (.eh_info)
+* Compiler generates table for both cleanup and catch blocks
+* Linker builds index for quick lookup (.eh_info_hdr)
+
+---
+class: asmslide
+
+## Bystander (Itanium, asm)
+
+.pull-left[
+```asm
+fun():
+        push    rbx
+        sub     rsp, 16
+        lea     rdi, [rsp+13]
+        call    Widget::Widget()
+        call    foo()
+        lea     rdi, [rsp+14]
+        call    Widget::Widget()
+        call    foo()
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+        call    foo()
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget()
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+        lea     rdi, [rsp+13]
+        call    Widget::~Widget()
+        add     rsp, 16
+        pop     rbx
+        ret 
+        ; continued ...
+
+```
+]
+.pull-right[
+```asm
+fun() [clone .cold.0]:
+.L2:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget()
+.L3:
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+.L4:
+        lea     rdi, [rsp+13]
+        call    Widget::~Widget()
+        mov     rdi, rbx
+        call    _Unwind_Resume
+```
+]
+
+???
+
+* Output from the latest GCC
+* One can see that the 'good path' is as optimal as possible
+* Th cleanup part is marked 'cold', and will be put in a separate block of the object file
+
+
+---
+class: asmslide
+
+## Bystander (Itanium, asm)
+
+.pull-left[
+```asm
+fun():
+LFB1030:
+        push    rbx
+        sub     rsp, 16
+        lea     rdi, [rsp+13]
+        call    Widget::Widget()
+LEHB0:
+        call    foo()
+LEHE0:
+        lea     rdi, [rsp+14]
+        call    Widget::Widget()
+.LEHB1:
+        call    foo()
+.LEHE1:
+        lea     rdi, [rsp+15]
+        call    Widget::Widget()
+.LEHB2:
+        call    foo()
+.LEHE2:
+        lea     rdi, [rsp+15]
+        call    Widget::~Widget()
+        lea     rdi, [rsp+14]
+        call    Widget::~Widget()
+        lea     rdi, [rsp+13]
+        call    Widget::~Widget()
+        add     rsp, 16
+        pop     rbx
+        ret 
+        ; continued ...
+
+```
+]
+.pull-right[
+```asm
+        .section        .gcc_except_table,"a",@progbits
+.LLSDA1030: ; header
+        .byte   0xff
+        .byte   0xff
+        .byte   0x1 ; 1 = no catch blocks
+        .uleb128 .LLSDACSE1030-.LLSDACSB1030
+.LLSDACSB1030: ; content
+        .uleb128 .LEHB0-.LFB1030
+        .uleb128 .LEHE0-.LEHB0
+        .uleb128 .L4-.LFB1030
+        .uleb128 0 ; 0 = cleaup only
+        .uleb128 .LEHB1-.LFB1030
+        .uleb128 .LEHE1-.LEHB1
+        .uleb128 .L3-.LFB1030
+        .uleb128 0 ; 0 = cleaup only
+        .uleb128 .LEHB2-.LFB1030
+        .uleb128 .LEHE2-.LEHB2
+        .uleb128 .L2-.LFB1030
+        .uleb128 0 ; 0 = cleaup only
+.LLSDACSE1030:
+```
+]
+
+???
+
+* Example of Language Specific Data Area
+
+---
+background-image: url(pics/itanium-eh-tables.png)
+
+???
+
+* Image from Itanium ABI: http://itanium-cxx-abi.github.io/cxx-abi/exceptions.pdf
+* Describes the flow trough the EH tables
 
 
 <!-- ========================== the End ============================ -->

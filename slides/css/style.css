@@ -45,7 +45,7 @@ h2 {
   margin-block-end: 0
 }
 
-
+.remark-slide-content { background-size: contain; }
 .remark-slide-content { padding: 1em }
 
 .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
