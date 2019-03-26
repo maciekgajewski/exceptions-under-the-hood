@@ -4,35 +4,14 @@
 #include "utils.hh"
 
 #include <benchmark/benchmark.h>
-#include <papipp.h>
 
 #include <iostream>
-
-//#define EPB_PAPI
 
 namespace ExpressionParser {
 namespace Benchmarks {
 
 static std::vector<Expression> expressions_valid;
 static std::vector<Expression> expressions_invalid_1;
-
-using papi_event_set =
-    papi::event_set<PAPI_TOT_INS, PAPI_TOT_CYC, PAPI_BR_MSP, PAPI_L1_DCM>;
-
-static void printCounters(const papi_event_set &events,
-                          std::uint64_t iterations) {
-  std::cout << "==== counters for " << iterations << " iterations ==== \n";
-  std::cout << events.get<PAPI_TOT_INS>().counter() /
-                   double(events.get<PAPI_TOT_CYC>().counter())
-            << " instr per cycle\n";
-  std::cout << events.get<PAPI_TOT_INS>().counter() / double(iterations)
-            << " instructions\n";
-  std::cout << events.get<PAPI_L1_DCM>().counter() / double(iterations)
-            << " l1 cache misses\n"
-            << events.get<PAPI_BR_MSP>().counter() / double(iterations)
-            << " branch misses\n"
-            << std::endl;
-}
 
 std::size_t global;
 static void warmup(const std::vector<Expression> &expressions) {
@@ -43,136 +22,89 @@ static void warmup(const std::vector<Expression> &expressions) {
 
 static void NullWholeSet(benchmark::State &state,
                          const std::vector<Expression> &expressions) {
-#ifdef EPB_PAPI
-  papi_event_set events;
-  events.start_counters();
-  warmup(expressions);
-  asm volatile("" ::"r,m"(expressions.data()) : "memory");
-  events.reset_counters();
-#endif
 
   for (auto _ : state) {
     for (const Expression &e : expressions) {
       ::benchmark::DoNotOptimize(e);
     }
   }
-
-#ifdef EPB_PAPI
-  events.stop_counters();
-  if (state.iterations() > 10000000)
-    printCounters(events, state.iterations());
-#endif
 }
 
 static void NoExceptionsWholeSet(benchmark::State &state,
                                  const std::vector<Expression> &expressions) {
-// papi - perf counters
-#ifdef EPB_PAPI
-  papi_event_set events;
-  events.start_counters();
-  warmup(expressions);
-  asm volatile("" ::"r,m"(expressions.data()) : "memory");
-  events.reset_counters();
-#endif
-
+  std::size_t errors = 0;
   for (auto _ : state) {
     for (const Expression &e : expressions) {
       int result;
-      ::benchmark::DoNotOptimize(evaluateNoExceptions(e.expression, result));
+      bool success;
+      ::benchmark::DoNotOptimize(
+          success = evaluateNoExceptions(e.expression, result));
+      if (!success)
+        errors++;
     }
   }
-
-#ifdef EPB_PAPI
-  events.stop_counters();
-  if (state.iterations() > 10000)
-    printCounters(events, state.iterations());
-#endif
+  state.counters["errors"] = errors;
 }
 
 static void ExceptionsWholeSet(benchmark::State &state,
                                const std::vector<Expression> &expressions) {
-// papi - perf counters
-#ifdef EPB_PAPI
-  papi_event_set events;
-  events.start_counters();
-  warmup(expressions);
-  asm volatile("" ::"r,m"(expressions.data()) : "memory");
-  events.reset_counters();
-#endif
-
+  std::size_t errors = 0;
   for (auto _ : state) {
     for (const Expression &e : expressions) {
       try {
         ::benchmark::DoNotOptimize(evaluateExceptions(e.expression));
       } catch (...) {
+        errors++;
       }
     }
   }
-
-#ifdef EPB_PAPI
-  events.stop_counters();
-  if (state.iterations() > 10000)
-    printCounters(events, state.iterations());
-#endif
+  state.counters["errors"] = errors;
 }
 
 static void NoExceptions(benchmark::State &state,
                          const std::vector<Expression> &expressions) {
-// papi - perf counters
-#ifdef EPB_PAPI
-  papi_event_set events;
-  events.start_counters();
-#endif
 
   std::size_t idx = 0;
+  std::size_t errors = 0;
   for (auto _ : state) {
     int result;
+    bool success;
     ::benchmark::DoNotOptimize(
-        evaluateNoExceptions(expressions[idx].expression, result));
+        success = evaluateNoExceptions(expressions[idx].expression, result));
     ++idx;
     if (idx == expressions.size())
       idx = 0;
+    if (!success)
+      errors++;
   }
-
-#ifdef EPB_PAPI
-  events.stop_counters();
-  if (state.iterations() > 1000000)
-    printCounters(events, state.iterations());
-#endif
+  state.counters["errors"] = errors;
 }
 
 static void Exceptions(benchmark::State &state,
                        const std::vector<Expression> &expressions) {
-#ifdef EPB_PAPI
-  papi_event_set events;
-  events.start_counters();
-#endif
 
+  std::size_t errors = 0;
   std::size_t idx = 0;
   for (auto _ : state) {
     try {
       ::benchmark::DoNotOptimize(
           evaluateExceptions(expressions[idx].expression));
     } catch (...) {
+      errors++;
     }
     ++idx;
     if (idx == expressions.size())
       idx = 0;
   }
-
-#ifdef EPB_PAPI
-  events.stop_counters();
-  if (state.iterations() > 1000000)
-    printCounters(events, state.iterations());
-#endif
+  state.counters["errors"] = errors;
 }
 
 BENCHMARK_CAPTURE(NullWholeSet, valid, expressions_valid);
 BENCHMARK_CAPTURE(NoExceptionsWholeSet, valid, expressions_valid);
 BENCHMARK_CAPTURE(ExceptionsWholeSet, valid, expressions_valid);
 
-// BENCHMARK_CAPTURE(NoExceptionsWholeSet, invalid1, expressions_invalid_1);
-// BENCHMARK_CAPTURE(ExceptionsWholeSet, invalid1, expressions_invalid_1);
+BENCHMARK_CAPTURE(NoExceptionsWholeSet, invalid1, expressions_invalid_1);
+BENCHMARK_CAPTURE(ExceptionsWholeSet, invalid1, expressions_invalid_1);
 
 BENCHMARK_CAPTURE(NoExceptions, valid, expressions_valid);
 BENCHMARK_CAPTURE(Exceptions, valid, expressions_valid);
