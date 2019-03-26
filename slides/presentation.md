@@ -1810,7 +1810,7 @@ class:center,middle
 
 ---
 
-## Expression parser becnhmark
+## Expression parser benchmark
 
 ```
 ((163)+34-(52-(219)))=364
@@ -1830,6 +1830,47 @@ class:center,middle
 230+(584)-(767)-((350+165)-583)=115
 ```
 
+???
+
+* I wrote a parser for expressions like these, in thwo versions
+* One throws exceptions, one uses return value.
+
+---
+
+## Expression parser benchmark
+
+<img src="pics/benchmark.png" width="800"/>
+
+???
+
+Things to note:
+* NoExceptions/valid is faster than Exceptions/valid. The difference is big enough to be a worthy price
+* NoExceptions/invalid1 is comparable of even faster than NoExceptions/valid
+* ... but Exceptions/invalid1 is patheticly slow
+Conclusion:
+* use exceptions to optimize normal flow
+* Don't use exceprions for normal flow
+
+---
+
+## Eceptions and binary size
+
+--
+
+Google reports 5-10% increase in binary size for Chrome
+
+???
+
+* Google is famous for not using exceptions. The cirte the increase in binary size as one of the reasons
+
+---
+background-image: url(pics/fh4-breakdown-1.png)
+
+
+???
+
+* This one Microsoft blog describes the overhead in great details, but for Windows
+* Source: https://devblogs.microsoft.com/cppblog/making-cpp-exception-handling-smaller-x64/
 
 <!-- ========================== the End ============================ -->
 
