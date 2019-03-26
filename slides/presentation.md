@@ -1802,6 +1802,21 @@ bar():
 * If 'noexcept' function contains a potnetially throwing call, an empoty EH table is generated for it,
 * so that std::terminate will be called in the event of stack unwinding
 
+---
+class:center,middle
+
+# Chapter VI
+## Performance
+
+---
+
+.chart-bar[
+|   | One | Two | Three |
+|---|-----|-----|-------|
+| A | 1   | 2   | 3     |
+| B | 2   | 3   | 4     |
+| C | 3   | 4   | 5     |
+]
 
 <!-- ========================== the End ============================ -->
 
