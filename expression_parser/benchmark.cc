@@ -174,11 +174,11 @@ BENCHMARK_CAPTURE(ExceptionsWholeSet, valid, expressions_valid);
 // BENCHMARK_CAPTURE(NoExceptionsWholeSet, invalid1, expressions_invalid_1);
 // BENCHMARK_CAPTURE(ExceptionsWholeSet, invalid1, expressions_invalid_1);
 
-// BENCHMARK_CAPTURE(NoExceptions, valid, expressions_valid);
-// BENCHMARK_CAPTURE(Exceptions, valid, expressions_valid);
+BENCHMARK_CAPTURE(NoExceptions, valid, expressions_valid);
+BENCHMARK_CAPTURE(Exceptions, valid, expressions_valid);
 
-// BENCHMARK_CAPTURE(NoExceptions, invalid1, expressions_invalid_1);
-// BENCHMARK_CAPTURE(Exceptions, invalid1, expressions_invalid_1);
+BENCHMARK_CAPTURE(NoExceptions, invalid1, expressions_invalid_1);
+BENCHMARK_CAPTURE(Exceptions, invalid1, expressions_invalid_1);
 
 } // namespace Benchmarks
 } // namespace ExpressionParser
