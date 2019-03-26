@@ -622,6 +622,18 @@ Obsolete, used to work with `throw()`
 
 ---
 
+background-image: url(pics/Explosion_of_first_Ariane_5_flight_June_4_1996.jpg)
+
+## std::terminate in practice
+
+???
+
+* This is how uncaught exception looks ike on 700M EUR rocket (Ariane 5)
+* In this case, it was uncaught integer overflow exception in Ada
+* Of course, for some projects, terminating is the best choice
+
+---
+
 ## std::exception_ptr
 
 Get current exception:
